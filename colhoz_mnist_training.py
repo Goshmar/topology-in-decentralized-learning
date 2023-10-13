@@ -9,15 +9,10 @@ from itertools import repeat
 from tqdm import tqdm
 from joblib import Parallel, delayed
 
-def repeater(data_loader):
-    for loader in repeat(data_loader):
-        for data in loader:
-            yield data
-
-transform=transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize((0.1307,), (0.3081,))
-        ])
+transform = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize((0.1307,), (0.3081,))
+])
 
 mnist_train = torchvision.datasets.MNIST(root='.', train=True, download=True, transform=transform)
 mnist_test = torchvision.datasets.MNIST(root='.', train=False, transform=transform)
@@ -40,6 +35,7 @@ class DatasetForLR(Dataset):
 
     def __len__(self):
         return self.size
+
 
 class LinReg(nn.Module):
     def __init__(self, num_features):
@@ -78,6 +74,7 @@ device = 'mps'
 train_loader = repeater(iter(train_loader))
 test_loader = iter(test_loader)
 
+
 def process_batch(model, opt, batch, loss_fn):
     X_batch = batch[0].to(device)
     y_batch = batch[1].to(device)
@@ -89,6 +86,7 @@ def process_batch(model, opt, batch, loss_fn):
     opt.zero_grad()
 
     return loss.item()
+
 
 def generate_batch(ds, batch_size):
     ids = torch.randint(0, len(ds), (batch_size,))
@@ -120,11 +118,11 @@ def train_for_W(Net, net_params, scheme, ds, num_steps, num_workers, batch_size,
         # for worker, opt in zip(workers, opts):
 
         cur_losses = Parallel(n_jobs=n_jobs)(delayed(one_step_for_worker)(workers,
-                                                             opts,
-                                                             idx,
-                                                             ds,
-                                                             batch_size,
-                                                             loss) for idx in range(len(workers)))
+                                                                          opts,
+                                                                          idx,
+                                                                          ds,
+                                                                          batch_size,
+                                                                          loss) for idx in range(len(workers)))
 
         cur_loss = np.mean(cur_losses)
 
@@ -142,7 +140,12 @@ def train_for_W(Net, net_params, scheme, ds, num_steps, num_workers, batch_size,
             for i, param_dict in enumerate(workers_params):
                 parameters_flattened[i] = torch.flatten(param_dict[key])
 
-            W = scheme.w(step).to(device)
+            if hasattr(scheme, 'next_step'):
+                W = scheme.get_w().to(device)
+                scheme.next_step()
+            else:
+                W = scheme.w(step).to(device)
+
             new_parameters = torch.matmul(W, parameters_flattened)
             for i, worker in enumerate(workers):
                 worker.state_dict()[key].copy_(torch.reshape(new_parameters[i], true_shape))
@@ -157,40 +160,40 @@ lin_reg_ds = DatasetForLR(256, 128)
 
 from STAT_TEST import TimeVaringErdos, Erdos
 
-scheme_var = TimeVaringErdos(n=64, p=1/8)
-scheme_const = Erdos(n=64, p=1/8)
+scheme_var = TimeVaringErdos(n=64, p=1 / 8)
+scheme_const = Erdos(n=64, p=1 / 8)
 
 
 def loss(outputs, y_batch):
-    return ((outputs - y_batch)**2).mean()
+    return ((outputs - y_batch) ** 2).mean()
 
 
 var_results = []
 const_results = []
 for lr in tqdm(np.linspace(0.01, 0.1, num=10)):
     var_results.append(train_for_W(LinReg,
-       [128],
-                  scheme_var,
-                  lin_reg_ds,
-                  num_steps=100,
-                  num_workers=64,
-                  batch_size=1,
-                  lr=lr,
-                  loss=loss,
-                  thr=2,
-                  n_jobs=1))
+                                   [128],
+                                   scheme_var,
+                                   lin_reg_ds,
+                                   num_steps=100,
+                                   num_workers=64,
+                                   batch_size=1,
+                                   lr=lr,
+                                   loss=loss,
+                                   thr=2,
+                                   n_jobs=1))
 
     const_results.append(train_for_W(LinReg,
-       [128],
-                  scheme_const,
-                  lin_reg_ds,
-                  num_steps=100,
-                  num_workers=64,
-                  batch_size=1,
-                  lr=lr,
-                  loss=loss,
-                  thr=2,
-                  n_jobs=1))
+                                     [128],
+                                     scheme_const,
+                                     lin_reg_ds,
+                                     num_steps=100,
+                                     num_workers=64,
+                                     batch_size=1,
+                                     lr=lr,
+                                     loss=loss,
+                                     thr=2,
+                                     n_jobs=1))
     print(var_results[-1], const_results[-1])
 print(f'Best for var: {min(var_results)}')
 print(f'Best for const: {min(const_results)}')

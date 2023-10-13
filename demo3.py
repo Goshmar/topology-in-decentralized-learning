@@ -70,7 +70,7 @@ class SlowChangingRing(AveragingScheme):
         self.graph = nx.cycle_graph(num_workers)
         self.iteration = 0
 
-    def next_step(self):
+    def w(self):
         self.graph = nx.cycle_graph(self.num_workers)
         edges_to_change = set([])
         random_iteration = 0
