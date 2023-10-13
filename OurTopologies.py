@@ -185,7 +185,7 @@ class Ring(AveragingScheme):
         return self.G
 
 
-class Ring(AveragingScheme):
+class Star(AveragingScheme):
     def __init__(self, n):
         self.n = n
         G = nx.star_graph(self.n)
@@ -199,3 +199,14 @@ class Ring(AveragingScheme):
 
     def w(self, t=0, params=None):
         return self.G
+
+
+class CycleChangingGraph(AveragingScheme):
+    def __init__(self, n, topologies):
+        self.n = n
+        self.topologies = topologies
+
+    def w(self, t=0, params=None):
+        graph = t % len(self.topologies)
+        step = t // len(self.topologies)
+        return self.topologies[graph].w(step)
