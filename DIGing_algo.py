@@ -1,7 +1,6 @@
 import numpy as np
 import torch
 
-
 def generate_batch(ds, batch_size):
     ids = torch.randint(0, len(ds), (batch_size,))
     X = []
@@ -14,20 +13,19 @@ def generate_batch(ds, batch_size):
             y.append(ds[idx][1])
     return torch.stack(X, dim=0), torch.stack(y, dim=0)
 
-
 def train_for_W_DIG(Net, net_params, scheme, ds, num_steps, num_workers, batch_size, lr, loss_fn, thr, n_jobs=1):
-    workers = [Net(*net_params) for _ in range(num_workers)]
+    workers = [Net(*net_params) for _ in range(num_workers)
     loss_for_step = []
-    Y0 = dict([])
-    X0 = dict([])
-    Y1 = dict([])
-    X1 = dict([])
-    previous_grads_flattened = dict([])
+    Y0 = {}
+    X0 = {}
+    Y1 = {}
+    X1 = {}
+    previous_grads_flattened = {}
 
     for step in range(num_steps):
         cur_losses = []
 
-        for idx in range(len(workers)):
+        for idx in range(len(workers):
             worker = workers[idx]
             batch = generate_batch(ds, batch_size)
             X_batch = batch[0]
@@ -39,7 +37,6 @@ def train_for_W_DIG(Net, net_params, scheme, ds, num_steps, num_workers, batch_s
             cur_losses.append(loss.item())
 
         cur_loss = np.mean(cur_losses)
-
         print(cur_loss)
         loss_for_step.append(cur_loss)
         workers_params = [dict(worker.named_parameters()) for worker in workers]
