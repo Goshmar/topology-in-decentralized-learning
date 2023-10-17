@@ -1,5 +1,8 @@
-matplotlib
-networkx
-numpy
-scipy
-torch
+matplotlib==3.4.3
+networkx==2.6.3
+numpy==1.19.5
+scipy==1.7.3
+torch==1.10.0
+joblib==1.0.1
+tqdm==4.62.2
+torchvision==0.11.1
