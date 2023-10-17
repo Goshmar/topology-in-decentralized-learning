@@ -5,7 +5,7 @@ import random
 from topologies import AveragingScheme
 
 
-class SlowChangingGraph(AveragingScheme):
+class SlowChangingGraph():
 
     def __init__(self, num_workers, k, seed=42, init_p=0.5):
         super().__init__()
@@ -52,13 +52,13 @@ class SlowChangingGraph(AveragingScheme):
         G = nx.to_numpy_array(self.graph)
         G = torch.tensor(G)
         num_neighbors = G.sum(1, True)
-        normalization = 1 / torch.max(num_neighbors, num_neighbors.T)
+        normalization = 1 / (torch.max(num_neighbors, num_neighbors.T) + 1)
         G = normalization * G
         G += torch.diag(1 - G.sum(1))
         return G
 
 
-class SlowChangingRing(AveragingScheme):
+class SlowChangingRing():
 
     def __init__(self, num_workers, k, seed=42):
         super().__init__()
@@ -84,13 +84,13 @@ class SlowChangingRing(AveragingScheme):
         G = nx.to_numpy_array(graph)
         G = torch.tensor(G)
         num_neighbors = G.sum(1, True)
-        normalization = 1 / torch.max(num_neighbors, num_neighbors.T)
+        normalization = 1 / (torch.max(num_neighbors, num_neighbors.T) + 1)
         G = normalization * G
         G += torch.diag(1 - G.sum(1))
         return G
 
 
-class SlowChangingStar(AveragingScheme):
+class SlowChangingStar():
 
     def __init__(self, num_workers, k, seed=42):
         super().__init__()
@@ -116,7 +116,7 @@ class SlowChangingStar(AveragingScheme):
         G = nx.to_numpy_array(graph)
         G = torch.tensor(G)
         num_neighbors = G.sum(1, True)
-        normalization = 1 / torch.max(num_neighbors, num_neighbors.T)
+        normalization = 1 / (torch.max(num_neighbors, num_neighbors.T) + 1)
         G = normalization * G
         G += torch.diag(1 - G.sum(1))
         return G
@@ -146,7 +146,7 @@ class TimeVaringErdos(AveragingScheme):
         G = nx.to_numpy_array(G)
         G = torch.tensor(G, dtype=torch.float32)
         num_neighbors = G.sum(1, True)
-        normalization = 1 / torch.max(num_neighbors, num_neighbors.T)
+        normalization = 1 / (torch.max(num_neighbors, num_neighbors.T) + 1)
         G = normalization * G
         G += torch.diag(1 - G.sum(1))
         return G
@@ -160,7 +160,7 @@ class Erdos(AveragingScheme):
         G = nx.to_numpy_array(G)
         G = torch.tensor(G, dtype=torch.float32)
         num_neighbors = G.sum(1, True)
-        normalization = 1 / torch.max(num_neighbors, num_neighbors.T)
+        normalization = 1 / (torch.max(num_neighbors, num_neighbors.T) + 1)
         G = normalization * G
         G += torch.diag(1 - G.sum(1))
         self.G = G
@@ -169,14 +169,14 @@ class Erdos(AveragingScheme):
         return self.G
 
 
-class Ring(AveragingScheme):
+class Ring():
     def __init__(self, n):
         self.n = n
         G = nx.cycle_graph(self.n)
         G = nx.to_numpy_array(G)
         G = torch.tensor(G, dtype=torch.float32)
         num_neighbors = G.sum(1, True)
-        normalization = 1 / torch.max(num_neighbors, num_neighbors.T)
+        normalization = 1 / (torch.max(num_neighbors, num_neighbors.T) + 1)
         G = normalization * G
         G += torch.diag(1 - G.sum(1))
         self.G = G
@@ -185,14 +185,14 @@ class Ring(AveragingScheme):
         return self.G
 
 
-class Star(AveragingScheme):
+class Star():
     def __init__(self, n):
         self.n = n
         G = nx.star_graph(self.n)
         G = nx.to_numpy_array(G)
         G = torch.tensor(G, dtype=torch.float32)
         num_neighbors = G.sum(1, True)
-        normalization = 1 / torch.max(num_neighbors, num_neighbors.T)
+        normalization = 1 / (torch.max(num_neighbors, num_neighbors.T) + 1)
         G = normalization * G
         G += torch.diag(1 - G.sum(1))
         self.G = G
@@ -201,7 +201,7 @@ class Star(AveragingScheme):
         return self.G
 
 
-class CycleChangingGraph(AveragingScheme):
+class CycleChangingGraph():
     def __init__(self, n, topologies):
         self.n = n
         self.topologies = topologies
